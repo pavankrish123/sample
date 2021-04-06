@@ -1,0 +1,37 @@
+receivers:
+  hostmetrics:
+    collection_interval: 30s
+    scrapers:
+      memory:
+      paging:
+
+processors:
+  resource:
+    attributes:
+      - key: cloud.availability_zone
+        value: "zone-1"
+        action: upsert
+      - key: k8s.cluster.name
+        value: "eks-some-thing"
+        action: insert
+      - key: host.id
+        value: "absaxgsg"
+        action: insert
+      - key: host.name
+        value: "test-machine"
+        action: insert
+      - key: host.image
+        value: "AWS-EKS"
+        action: insert
+
+exporters:
+  otlp:
+    endpoint: 0.0.0.0:5000
+    insecure: true
+
+service:
+  pipelines:
+    metrics/demo:
+      receivers: [hostmetrics]
+      processors: [resource]
+      exporters: [otlp]
