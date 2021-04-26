@@ -8,9 +8,11 @@ exporters:
   otlp:
     endpoint: 0.0.0.0:5000
     insecure: true
+  prometheus:
+    endpoint: 0.0.0.0:9009
 
 service:
   pipelines:
     metrics/demo:
       receivers: [otlp]
-      exporters: [otlp]
+      exporters: [otlp, prometheus]

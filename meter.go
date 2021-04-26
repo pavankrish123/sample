@@ -43,11 +43,13 @@ func initProvider() func() {
 	cont := controller.New(
 		processor.New(
 			// aggregation goes here
-			simple.NewWithInexpensiveDistribution(),
+			simple.NewWithExactDistribution(),
+			// prometheus cannot show OT summary distributions :(
+			//simple.NewWithInexpensiveDistribution(),
 			exp,
 		),
 		controller.WithExporter(exp),
-		controller.WithCollectPeriod(time.Minute),
+		controller.WithCollectPeriod(time.Second * 20),
 		controller.WithResource(res),
 	)
 
