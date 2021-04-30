@@ -1,21 +1,22 @@
 # Sample OTLP
 
-## Start the mock ingest server
-```bash
-go run server.go
-```
-
-## Start Prometheus
-[Download](https://prometheus.io/download/)
-```bash
-./prometheus --config.file prometheus.yml
-```
-
-
 ## Start metrics generator
 ```bash
 go run main.go
 ```
+
+## Edit OT Collector 
+
+Modify endpoint to point to OTLP HTTP Ingestion Point
+```bash 
+# cat otel-config.yml
+
+  otlphttp: # for additional settings see https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter
+    endpoint: <endpoint> # point this to oltp http based endpoint
+    insecure: true
+    
+```
+
 
 ## Start the OT Collector 
 [Download](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.25.0)
@@ -25,9 +26,6 @@ go run main.go
 
 ## Deployment
 ```bash
-metric gen app -> ot-collector -> [mock ingest server, prometheus]
+metric gen app -> ot-collector -> [OTLP HTTP Ingest]
 ```
 
-## Prometheus 
-- Doesn't show OT Distribution metrics 
-- `flow_metric` is the metric 
