@@ -25,8 +25,9 @@ go run main.go
 
 ## Deployment
 ```bash
-metric gen -> ot-collector -> mock ingest server
+metric gen app -> ot-collector -> [mock ingest server, prometheus]
 ```
+
 ## Prometheus 
 - Doesn't show OT Distribution metrics 
 - `flow_metric` is the metric 
