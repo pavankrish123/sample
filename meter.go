@@ -42,8 +42,7 @@ func initProvider() func() {
 
 	cont := controller.New(
 		processor.New(
-			// aggregation goes here
-			// ometheus cannot show OT summary distributions :(
+			// create distributions
 			simple.NewWithInexpensiveDistribution(),
 			exp,
 		),
