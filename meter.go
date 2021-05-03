@@ -43,13 +43,12 @@ func initProvider() func() {
 	cont := controller.New(
 		processor.New(
 			// aggregation goes here
-			simple.NewWithExactDistribution(),
-			// prometheus cannot show OT summary distributions :(
-			//simple.NewWithInexpensiveDistribution(),
+			// ometheus cannot show OT summary distributions :(
+			simple.NewWithInexpensiveDistribution(),
 			exp,
 		),
 		controller.WithExporter(exp),
-		controller.WithCollectPeriod(time.Second * 20),
+		controller.WithCollectPeriod(time.Second*60),
 		controller.WithResource(res),
 	)
 
@@ -81,10 +80,10 @@ func main() {
 	// Recorder metric example
 	valueRecorder := metric.Must(meter).NewFloat64ValueRecorder("flow_metric",
 		metric.WithDescription("Measures flow metrics"),
-		).Bind(commonLabels...)
+	).Bind(commonLabels...)
 	defer valueRecorder.Unbind()
 
-	for  {
+	for {
 		r := rand.Float64() * 10.0
 		log.Printf("Adding Measurement %5.2f \n", r)
 		valueRecorder.Record(context.Background(), r)
