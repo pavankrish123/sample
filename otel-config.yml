@@ -1,21 +1,43 @@
 receivers:
-  otlp:
-    protocols:
-      grpc:
-        endpoint: localhost:30080
-
+  hostmetrics:
+    collection_interval: 20s
+    scrapers:
+      memory:
+      network:
+      paging:
+      load:
+      filesystem:
 exporters:
   otlp:
-    endpoint: 0.0.0.0:5000
+    endpoint: cis1-customer.saas.appd-test.com:443
+    insecure: false
+    ca_file: /etc/ssl/cert.pem
+    per_rpc_auth:
+      type: bearer
+      bearer_token: "some-token"
+    compression: gzip
+  otlphttp:
+    endpoint: https://pdx-t01-lev17-k8s-a1-external-ingress.saas.appd-test.com/ingest
+    headers: { "Authorization": "Bearer some-token", "Content-Type: application/x-protobuf", "Accept: application/x-protobuf"}
     insecure: true
-  otlphttp: # for additional setting see https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter
-    endpoint: <endpoint> # point this to oltp http based endpoint 
-    insecure: true
-  prometheus:
-    endpoint: 0.0.0.0:9009
 
+  logging:
+    loglevel: debug
+
+
+processors:
+  resource:
+    attributes:
+    - key: host.name
+      action: insert
+      value: pavankri
+    - key: host.id
+      action: insert
+      value: id     
+  batch:
 service:
   pipelines:
     metrics/demo:
-      receivers: [otlp]
-      exporters: [otlp, prometheus, otlphttp]
+      receivers: [hostmetrics]
+      processors: [resource, batch]
+      exporters: [otlphttp]
