@@ -1,43 +1,20 @@
 receivers:
-  hostmetrics:
-    collection_interval: 20s
-    scrapers:
-      memory:
-      network:
-      paging:
-      load:
-      filesystem:
+  otlp:
+    protocols:
+      grpc:
+
 exporters:
   otlp:
-    endpoint: cis1-customer.saas.appd-test.com:443
+    endpoint: localhost:5000
     insecure: false
-    ca_file: /etc/ssl/cert.pem
-    per_rpc_auth:
-      type: bearer
-      bearer_token: "some-token"
-    compression: gzip
-  otlphttp:
-    endpoint: https://pdx-t01-lev17-k8s-a1-external-ingress.saas.appd-test.com/ingest
-    headers: { "Authorization": "Bearer some-token", "Content-Type: application/x-protobuf", "Accept: application/x-protobuf"}
-    insecure: true
+    ca_file: /tmp/certs/ca.pem
 
   logging:
     loglevel: debug
 
 
-processors:
-  resource:
-    attributes:
-    - key: host.name
-      action: insert
-      value: pavankri
-    - key: host.id
-      action: insert
-      value: id     
-  batch:
 service:
   pipelines:
     metrics/demo:
-      receivers: [hostmetrics]
-      processors: [resource, batch]
-      exporters: [otlphttp]
+      receivers: [otlp]
+      exporters: [logging, otlp]

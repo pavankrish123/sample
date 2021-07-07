@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
 	"log"
 	"math/rand"
 	"time"
@@ -27,7 +28,7 @@ func initProvider() func() {
 
 	driver := otlpgrpc.NewDriver(
 		otlpgrpc.WithInsecure(),
-		otlpgrpc.WithEndpoint("localhost:30080"),
+		otlpgrpc.WithEndpoint("localhost:4317"),
 		otlpgrpc.WithDialOption(grpc.WithBlock()), // useful for testing
 	)
 	exp, err := otlp.NewExporter(ctx, driver)
@@ -43,9 +44,9 @@ func initProvider() func() {
 	cont := controller.New(
 		processor.New(
 			// aggregation goes here
-			simple.NewWithExactDistribution(),
+			//simple.NewWithExactDistribution(),
 			// prometheus cannot show OT summary distributions :(
-			//simple.NewWithInexpensiveDistribution(),
+			simple.NewWithHistogramDistribution(histogram.WithExplicitBoundaries([]float64{0.5, 0.9, 0.1})),
 			exp,
 		),
 		controller.WithExporter(exp),

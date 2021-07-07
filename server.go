@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-//	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/jsonpb"
 	mpb "go.opentelemetry.io/proto/otlp/collector/metrics/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -24,12 +24,12 @@ func (a *MetricsExportService) Export(ctx context.Context, request *mpb.ExportMe
 		log.Println(md)
 	}
 
-	// marshaller := &jsonpb.Marshaler{Indent: "\t"}
-	// s, err := marshaller.MarshalToString(request)
-	// if err != nil {
-	// 	log.Print(err.Error())
-	// }
-	// log.Println(s)
+         marshaller := &jsonpb.Marshaler{Indent: "\t"}
+	s, err := marshaller.MarshalToString(request)
+        if err != nil {
+	 	log.Print(err.Error())
+         }
+	log.Println(s)
 	return &mpb.ExportMetricsServiceResponse{}, nil
 }
 
