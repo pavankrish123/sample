@@ -3,6 +3,12 @@ package main
 import (
 	"context"
 	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
+	"google.golang.org/grpc/credentials"
+	grpcOAuth "google.golang.org/grpc/credentials/oauth"
+	"net/http"
+
 	"log"
 	"math/rand"
 	"time"
@@ -26,10 +32,16 @@ import (
 func initProvider() func() {
 	ctx := context.Background()
 
+	perRPC, err := fetchOauth2PerRPCCreds()
+	if err != nil {
+		panic(err)
+	}
+
 	driver := otlpgrpc.NewDriver(
 		otlpgrpc.WithInsecure(),
 		otlpgrpc.WithEndpoint("localhost:4317"),
-		otlpgrpc.WithDialOption(grpc.WithBlock()), // useful for testing
+		otlpgrpc.WithDialOption(grpc.WithBlock(),
+			grpc.WithPerRPCCredentials(perRPC)), // oauth2
 	)
 	exp, err := otlp.NewExporter(ctx, driver)
 	handleErr(err, "failed to create exporter")
@@ -50,7 +62,7 @@ func initProvider() func() {
 			exp,
 		),
 		controller.WithExporter(exp),
-		controller.WithCollectPeriod(time.Second * 20),
+		controller.WithCollectPeriod(time.Second*20),
 		controller.WithResource(res),
 	)
 
@@ -82,10 +94,10 @@ func main() {
 	// Recorder metric example
 	valueRecorder := metric.Must(meter).NewFloat64ValueRecorder("flow_metric",
 		metric.WithDescription("Measures flow metrics"),
-		).Bind(commonLabels...)
+	).Bind(commonLabels...)
 	defer valueRecorder.Unbind()
 
-	for  {
+	for {
 		r := rand.Float64() * 10.0
 		log.Printf("Adding Measurement %5.2f \n", r)
 		valueRecorder.Record(context.Background(), r)
@@ -97,4 +109,21 @@ func handleErr(err error, message string) {
 	if err != nil {
 		log.Fatalf("%s: %v", message, err)
 	}
+}
+
+func fetchOauth2PerRPCCreds() (credentials.PerRPCCredentials, error) {
+
+	oauth2Client := http.Client{Timeout: time.Second * 5}
+	clientCredentials := &clientcredentials.Config{
+		ClientID:     "ClientID",
+		ClientSecret: "ClientSecret",
+		TokenURL:     "https://token-url.com/tokenURL",
+		Scopes:       []string{"some.read"},
+	}
+
+	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, oauth2Client)
+	return grpcOAuth.TokenSource{
+		TokenSource: clientCredentials.TokenSource(ctx),
+	}, nil
+
 }
