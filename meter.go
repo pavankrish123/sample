@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	grpcOAuth "google.golang.org/grpc/credentials/oauth"
 	"net/http"
+	"os"
 
 	"log"
 	"math/rand"
@@ -32,7 +33,7 @@ import (
 func initProvider() func() {
 	ctx := context.Background()
 
-	perRPC, err := fetchOauth2PerRPCCreds()
+	perRPC, err := NewClientCredsConfig().fetchOauth2PerRPCCreds()
 	if err != nil {
 		panic(err)
 	}
@@ -111,14 +112,35 @@ func handleErr(err error, message string) {
 	}
 }
 
-func fetchOauth2PerRPCCreds() (credentials.PerRPCCredentials, error) {
 
-	oauth2Client := http.Client{Timeout: time.Second * 5}
+
+type Config struct {
+	ClientID string
+	ClientSecret string
+	TokenURL string
+	Scopes []string
+	Timeout time.Duration `mapstructure:"timeout,omitempty"`
+}
+
+
+func NewClientCredsConfig()*Config {
+	return &Config{
+		ClientID:     os.Getenv("CLIENT_ID"),
+		ClientSecret: os.Getenv("CLIENT_SECRET"),
+		TokenURL:     os.Getenv("TOKEN_URL"),
+		Scopes:       nil,
+		Timeout:      5 * time.Second,
+	}
+}
+
+
+func (c *Config) fetchOauth2PerRPCCreds() (credentials.PerRPCCredentials, error) {
+	oauth2Client := http.Client{Timeout: c.Timeout}
 	clientCredentials := &clientcredentials.Config{
-		ClientID:     "ClientID",
-		ClientSecret: "ClientSecret",
-		TokenURL:     "https://token-url.com/tokenURL",
-		Scopes:       []string{"some.read"},
+		ClientID:     c.ClientID,
+		ClientSecret: c.ClientSecret,
+		TokenURL:     c.TokenURL,
+		Scopes:       c.Scopes,
 	}
 
 	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, oauth2Client)
