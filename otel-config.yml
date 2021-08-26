@@ -7,7 +7,9 @@ exporters:
   otlp:
     endpoint: localhost:5000
     insecure: false
-    ca_file: /tmp/certs/ca.pem
+
+  otlphttp:
+    endpoint: http://localhost:9000
 
   logging:
     loglevel: debug
@@ -15,6 +17,9 @@ exporters:
 
 service:
   pipelines:
-    metrics/demo:
+    traces:
       receivers: [otlp]
-      exporters: [logging, otlp]
+      exporters: [logging]
+    metrics:
+      receivers: [otlp]
+      exporters: [logging]

@@ -38,7 +38,7 @@ func newClientCredentialsAuthenticator(cfg *Config) (*ClientCredentialsAuthentic
 			Scopes:       cfg.Scopes,
 		},
 
-		// TLS stuff can also be added to Transport of this client.
+		// TLS stuff can also be added to Transport of this metricsclient.
 		client: &http.Client{
 			Timeout:   cfg.Timeout,
 		},
