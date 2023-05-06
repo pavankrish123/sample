@@ -75,6 +75,7 @@ func (s errorSimulator) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// write headers
 	w.Header().Set("Content-Type", s.m.contentType())
 	w.WriteHeader(s.status)
+	w.Header().Set("Retry-After", "15")
 
 	// write the status as proto
 	msg, err := s.m.marshalStatus(errorMsgToStatus(s.errorMsg, s.status).Proto())
