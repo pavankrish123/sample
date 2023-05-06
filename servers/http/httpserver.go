@@ -80,7 +80,7 @@ func errorMsgToStatus(errMsg string, statusCode int) *status.Status {
 	case http.StatusBadRequest:
 		return status.New(codes.InvalidArgument, errMsg)
 	case http.StatusTooManyRequests:
-		return status.New(codes.Unauthenticated, errMsg)
+		return status.New(codes.ResourceExhausted, errMsg)
 	case http.StatusInternalServerError:
 		return status.New(codes.Internal, errMsg)
 	case http.StatusNotFound:
