@@ -22,7 +22,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", welcomeHandleFunc).Methods("GET")
 
-	handler := errorSimulator{
+	handler := &errorSimulator{
 		status:   cfg.Response.Code,
 		errorMsg: cfg.Response.Message,
 		m:        &protobufMarshaller{},
@@ -43,25 +43,6 @@ func welcomeHandleFunc(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-type marshaller interface {
-	marshalStatus(resp *spb.Status) ([]byte, error)
-	contentType() string
-}
-
-type protobufMarshaller struct{}
-
-const (
-	pbContentType = "application/x-protobuf"
-)
-
-func (protobufMarshaller) marshalStatus(resp *spb.Status) ([]byte, error) {
-	return proto.Marshal(resp)
-}
-
-func (protobufMarshaller) contentType() string {
-	return pbContentType
-}
-
 // Simulated Handler
 type errorSimulator struct {
 	status   int
@@ -69,7 +50,7 @@ type errorSimulator struct {
 	m        marshaller
 }
 
-func (s errorSimulator) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *errorSimulator) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("received request %v, %v", r.Method, r.RequestURI)
 
 	// write headers
@@ -99,6 +80,25 @@ func errorMsgToStatus(errMsg string, statusCode int) *status.Status {
 		return status.New(codes.NotFound, errMsg)
 	}
 	return status.New(codes.Unknown, errMsg)
+}
+
+type marshaller interface {
+	marshalStatus(resp *spb.Status) ([]byte, error)
+	contentType() string
+}
+
+type protobufMarshaller struct{}
+
+const (
+	pbContentType = "application/x-protobuf"
+)
+
+func (protobufMarshaller) marshalStatus(resp *spb.Status) ([]byte, error) {
+	return proto.Marshal(resp)
+}
+
+func (protobufMarshaller) contentType() string {
+	return pbContentType
 }
 
 type Resp struct {
